@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>God's of Continent</title>
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+html,body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background: #101010;
+    color: white;
+    font-family: Arial,sans-serif;
+}
+body {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+}
+.app {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+h1 {
+    margin: 8px 0;
+    font-size: clamp(20px,5vw,32px);
+    text-align: center;
+}
+.name {
+    width: min(300px,80vw);
+    padding: 10px;
+    background: #1b1b1b;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 16px;
+    outline: none;
+}
+.chart-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+svg {
+    width: 100%;
+    max-width: 700px;
+    height: auto;
+    display: block;
+    touch-action: none;
+}
+.grid {
+    fill: none;
+    stroke: #555;
+    stroke-width: 2;
+}
+.axis {
+    stroke: #383838;
+    stroke-width: 1;
+}
+#character {
+    fill: rgba(60,150,255,.25);
+    stroke: #4da3ff;
+    stroke-width: 3;
+}
+.point {
+    fill: white;
+    stroke: #4da3ff;
+    stroke-width: 3;
+    cursor: grab;
+}
+.point:active {
+    cursor: grabbing;
+    fill: #4da3ff;
+}
+.label {
+    fill: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    user-select: none;
+}
+.number {
+    fill: #777;
+    font-size: 14px;
+    text-anchor: middle;
+    user-select: none;
+}
+.stats {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px 15px 20px;
+}
+.stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 5px;
+    border-bottom: 1px solid #292929;
+}
+.stat-value {
+    color: #4da3ff;
+    font-weight: bold;
+    font-size: 20px;
+}
+button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px;
+    background: #2469b8;
+    color: white;
+    border: 0;
+    border-radius: 8px;
+    font-size: 16px;
+}
+@media(max-width:500px) {
+    body {
+        padding: 3px;
+    }
+    h1 {
+        margin: 4px 0;
+        font-size: 20px;
+    }
+    .name {
+        padding: 8px;
+        font-size: 14px;
+    }
+    .stats {
+        padding-top: 0;
+    }
+    .stat {
+        padding: 6px 4px;
+    }
+    .stat-value {
+        font-size: 18px;
+    }
+}
+@media(max-width:360px) {
+    h1 {
+        font-size: 18px;
+    }
+    .label {
+        font-size: 14px;
+    }
+    .number {
+        font-size: 12px;
+    }
+}
+</style>
+</head>
+<body>
+    <div class="app">
+        <h1>Характеристики</h1>
+        <input class="name" id="name" value="Персонаж" placeholder="Имя персонажа">
+        <div class="chart-wrapper">
+            <svg id="chart" viewBox="0 0 700 700" preserveAspectRatio="xMidYMid meet">
+                <g id="grid"></g>
+                <g id="axes"></g>
+                <polygon id="character"></polygon>
+                <g id="points"></g>
+                <g id="labels"></g>
+                <g id="numbers"></g>
+            </svg>
+    </div>
+<div class="stats">
+<div id="stats"></div>
+<button id="reset">Сбросить</button>
+</div>
+</div>
+<script>
+const svg = document.getElementById("chart");
+const grid = document.getElementById("grid");
+const axes = document.getElementById("axes");
+const character = document.getElementById("character");
+const pointsGroup = document.getElementById("points");
+const labelsGroup = document.getElementById("labels");
+const numbersGroup = document.getElementById("numbers");
+const statsPanel = document.getElementById("stats");
+const resetButton = document.getElementById("reset");
+
+const CENTER_X = 350;
+const CENTER_Y = 350;
+const RADIUS_5 = 250;
+const SIDES = 8;
+
+const names = [
+    "Сила",
+    "Скорость",
+    "Интеллект",
+    "Потенциал",
+    "Сила магии",
+    "Выносливость",
+    "Душа",
+    "Стиль боя"
+];
+
+let values = [3,3,3,3,3,3,3,3];
+
+function getPoint(index,value) {
+    const angle = -Math.PI / 2 + index * (Math.PI * 2 / SIDES);
+    const radius = RADIUS_5 * (value / 5);
+    return {
+        x: CENTER_X + Math.cos(angle) * radius,
+        y: CENTER_Y + Math.sin(angle) * radius
+    };
+}
+
+function createGrid() {
+    grid.innerHTML = "";
+    for(let value = 1; value <= 5; value++) {
+        let polygonPoints = [];
+        for(let i = 0; i < SIDES; i++) {
+            const point = getPoint(i,value);
+            polygonPoints.push(`${point.x},${point.y}`);
+        }
+        const polygon = document.createElementNS("http://www.w3.org/2000/svg","polygon");
+        polygon.setAttribute("points",polygonPoints.join(" "));
+        polygon.classList.add("grid");
+        grid.appendChild(polygon);
+    }
+}
+
+function createAxes() {
+    axes.innerHTML = "";
+    for(let i = 0; i < SIDES; i++) {
+        const point = getPoint(i,6);
+        const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+        line.setAttribute("x1",CENTER_X);
+        line.setAttribute("y1",CENTER_Y);
+        line.setAttribute("x2",point.x);
+        line.setAttribute("y2",point.y);
+        line.classList.add("axis");
+        axes.appendChild(line);
+    }
+}
+
+function createLabels() {
+    labelsGroup.innerHTML = "";
+    for(let i = 0; i < SIDES; i++) {
+        const angle = -Math.PI / 2 + i * (Math.PI * 2 / SIDES);
+        const radius = RADIUS_5 + 75;
+        const x = CENTER_X + Math.cos(angle) * radius;
+        const y = CENTER_Y + Math.sin(angle) * radius;
+        const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+        text.setAttribute("x",x);
+        text.setAttribute("y",y);
+        text.classList.add("label");
+        text.textContent = names[i];
+        labelsGroup.appendChild(text);
+    }
+}
+
+function createNumbers() {
+    for (let index = 0; index < SIDES; index++) {
+        for (let value = 1; value <= 5; value++) {
+            const p = getPoint(index, value);
+            const angle = -Math.PI / 2 + index * (Math.PI * 2 / SIDES);
+            const offset = 16;
+            const x = p.x + Math.cos(angle) * offset;
+            const y = p.y + Math.sin(angle) * offset;
+
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", x);
+            text.setAttribute("y", y + 4);
+            text.setAttribute("class", "number");
+            text.setAttribute("text-anchor", "middle");
+            text.textContent = value;
+            svg.appendChild(text);
+        }
+    }
+}
+
+function updateCharacter() {
+    let points = [];
+    for(let i = 0; i < SIDES; i++) {
+        const point = getPoint(i,values[i]);
+        points.push(`${point.x},${point.y}`);
+    }
+    character.setAttribute("points",points.join(" "));
+}
+
+function createPoints() {
+    pointsGroup.innerHTML = "";
+    for(let i = 0; i < SIDES; i++) {
+        const point = getPoint(i,values[i]);
+        const circle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+        circle.setAttribute("cx",point.x);
+        circle.setAttribute("cy",point.y);
+        circle.setAttribute("r",10);
+        circle.classList.add("point");
+        circle.dataset.index = i;
+        circle.addEventListener("pointerdown",startDrag);
+        pointsGroup.appendChild(circle);
+    }
+}
+
+function updatePoints() {
+    const points = document.querySelectorAll(".point");
+    points.forEach((point,index) => {
+        const position = getPoint(index,values[index]);
+        point.setAttribute("cx",position.x);
+        point.setAttribute("cy",position.y);
+    });
+}
+
+function updateStats() {
+    statsPanel.innerHTML = "";
+    for(let i = 0; i < SIDES; i++) {
+        const row = document.createElement("div");
+        row.className = "stat";
+        row.innerHTML = `<span>${names[i]}</span><span class="stat-value">${values[i]}</span>`;
+        statsPanel.appendChild(row);
+    }
+}
+
+let activeIndex = null;
+
+function startDrag(event) {
+    activeIndex = Number(event.currentTarget.dataset.index);
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.currentTarget.addEventListener("pointermove",drag);
+    event.currentTarget.addEventListener("pointerup",stopDrag);
+}
+
+function drag(event) {
+    if(activeIndex === null) return;
+
+    const rect = svg.getBoundingClientRect();
+    const mouseX = (event.clientX - rect.left) * (700 / rect.width);
+    const mouseY = (event.clientY - rect.top) * (700 / rect.height);
+    const dx = mouseX - CENTER_X;
+    const dy = mouseY - CENTER_Y;
+
+    let distance = Math.sqrt(dx * dx + dy * dy);
+
+    const radius1 = RADIUS_5 / 5;
+    const radius6 = RADIUS_5 * (6 / 5);
+
+    if(distance < radius1) distance = radius1;
+    if(distance > radius6) distance = radius6;
+
+    let value = Math.round(distance / RADIUS_5 * 5);
+    value = Math.max(1,Math.min(6,value));
+
+    values[activeIndex] = value;
+
+    updateCharacter();
+    updatePoints();
+    updateStats();
+}
+
+function stopDrag(event) {
+    event.currentTarget.removeEventListener("pointermove",drag);
+    event.currentTarget.removeEventListener("pointerup",stopDrag);
+    activeIndex = null;
+}
+
+resetButton.addEventListener("click",() => {
+    values = [3,3,3,3,3,3,3,3];
+    updateCharacter();
+    updatePoints();
+    updateStats();
+});
+
+createGrid();
+createAxes();
+createLabels();
+createNumbers();
+createPoints();
+updateCharacter();
+updateStats();
+</script>
+</body>
+</html>
