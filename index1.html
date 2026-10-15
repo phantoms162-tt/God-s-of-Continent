@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07172d">
+<title>QUESTISM — Статус игрока</title>
+
+<style>
+:root {
+    --bg: #07172d;
+    --panel: #102b49;
+    --cyan: #75eaff;
+    --text: #ffffff;
+    --muted: #9bb6ce;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: clamp(10px, 3vw, 30px);
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(ellipse at top, #123c69, transparent 55%),
+        linear-gradient(145deg, #07172d, #020711);
+}
+
+button {
+    font: inherit;
+}
+
+button:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 3px;
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.logo {
+    margin: 0;
+    font-size: clamp(23px, 4vw, 36px);
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-shadow: 0 0 15px #00bfff77;
+}
+
+.reset {
+    min-height: 42px;
+    padding: 10px 17px;
+    color: white;
+    background: #102b49;
+    border: 1px solid #4acfff;
+    cursor: pointer;
+}
+
+.reset:hover {
+    background: #17476d;
+}
+
+.status {
+    padding: clamp(15px, 4vw, 30px);
+    background: linear-gradient(145deg, #102b49, #061326);
+    border: 1px solid #287da6;
+    box-shadow: 0 0 25px #00bfff22;
+}
+
+.status-title {
+    margin-bottom: 28px;
+    color: var(--cyan);
+    font-size: 13px;
+    letter-spacing: 3px;
+}
+
+.stat {
+    display: grid;
+    grid-template-columns: minmax(110px, 170px) minmax(0, 1fr) 60px;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 25px;
+}
+
+.stat-name {
+    font-size: clamp(13px, 1.8vw, 17px);
+    font-weight: bold;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+}
+
+.squares {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: clamp(3px, 0.7vw, 7px);
+    min-width: 0;
+}
+
+.square {
+    width: 100%;
+    min-width: 0;
+    height: clamp(27px, 4vw, 39px);
+    padding: 0;
+    border: 1px solid #496780;
+    border-radius: 1px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: filter .15s, box-shadow .15s;
+}
+
+.square:hover {
+    filter: brightness(1.4);
+}
+
+.square.active {
+    border: 2px solid white;
+    box-shadow: 0 0 12px var(--rank-color);
+}
+
+.rank {
+    text-align: right;
+    font-size: clamp(24px, 3vw, 32px);
+    font-weight: bold;
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 18px;
+    border-top: 1px solid #31516d;
+    color: #8eb4d3;
+    font-size: 12px;
+}
+
+#totalRank {
+    font-weight: bold;
+}
+
+.legend {
+    margin-top: 22px;
+    padding: clamp(15px, 3vw, 22px);
+    border-left: 3px solid #4acfff;
+    background: #0b1c31;
+}
+
+.legend h2 {
+    margin: 0 0 10px;
+    font-size: 17px;
+}
+
+.legend p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.rank-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rank-item {
+    min-width: 40px;
+    padding: 8px 11px;
+    border: 1px solid #35536c;
+    text-align: center;
+    font-weight: bold;
+}
+
+.note {
+    margin-top: 15px;
+    color: #829db7;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* Планшеты */
+@media (min-width: 601px) and (max-width: 900px) {
+    .container {
+        max-width: 760px;
+    }
+
+    .stat {
+        grid-template-columns: 130px minmax(0, 1fr) 50px;
+        gap: 10px;
+    }
+}
+
+/* Телефоны */
+@media (max-width: 600px) {
+    body {
+        padding: 14px 10px;
+    }
+
+    .header {
+        margin-bottom: 18px;
+    }
+
+    .status {
+        padding: 18px 12px;
+    }
+
+    .status-title {
+        margin-bottom: 22px;
+        font-size: 11px;
+        letter-spacing: 2px;
+    }
+    .stat {
+        grid-template-columns: minmax(0, 1fr) 48px;
+        gap: 10px 8px;
+        margin-bottom: 23px;
+    }
+
+    .stat-name {
+        grid-column: 1;
+        grid-row: 1;
+        font-size: clamp(12px, 3.5vw, 15px);
+    }
+
+    .rank {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .squares {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        gap: 5px;
+    }
+
+    .square {
+        height: clamp(30px, 8vw, 40px);
+    }
+
+    .footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .legend {
+        margin-top: 15px;
+    }
+}
+
+/* Очень узкие экраны */
+@media (max-width: 350px) {
+    body {
+        padding: 10px 7px;
+    }
+
+    .status {
+        padding: 14px 8px;
+    }
+
+    .squares {
+        gap: 3px;
+    }
+
+    .square {
+        height: 28px;
+    }
+
+    .logo {
+        font-size: 21px;
+    }
+
+    .reset {
+        padding: 8px 10px;
+    }
+}
+
+/* Широкие экраны и доступность */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1100px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        scroll-behavior: auto;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<main class="container">
+
+    <header class="header">
+        <h1 class="logo">QUESTISM</h1>
+        <button class="reset" id="resetBtn" type="button">
+            ↻ Сброс
+        </button>
+    </header>
+
+    <section class="status">
+        <div class="status-title">
+            ◆ СТАТУС ИГРОКА
+        </div>
+
+        <div id="stats"></div>
+
+        <div class="footer">
+            <span>● СИСТЕМА АКТИВНА</span>
+            <span id="totalRank">ОБЩИЙ РАНГ: F</span>
+        </div>
+    </section>
+
+    <section class="legend">
+        <h2>ШКАЛА РАНГОВ</h2>
+        <p>
+            Нажми на квадрат нужного ранга.
+            Выбранный квадрат подсветится.
+        </p>
+        <div class="rank-list" id="rankList"></div>
+    </section>
+
+    <p class="note">
+        Характеристики сохраняются в браузере
+        на текущем устройстве.
+    </p>
+
+</main>
+
+<script>
+const ranks = [
+    { name: "F", color: "#718ba3" },
+    { name: "E", color: "#59c987" },
+    { name: "D", color: "#a0d94f" },
+    { name: "C", color: "#e0dc52" },
+    { name: "B", color: "#ffb347" },
+    { name: "A", color: "#ff754f" },
+    { name: "S", color: "#ff4266" },
+    { name: "X", color: "#b66bff" }
+];
+
+const characteristics = [
+    { name: "Сила", rank: 0 },
+    { name: "Скорость", rank: 0 },
+    { name: "Потенциал", rank: 0 },
+    { name: "Интеллект", rank: 0 },
+    { name: "Выносливость", rank: 0 }
+];
+
+// Загружаем сохранённые данные
+try {
+    const saved = JSON.parse(
+        localStorage.getItem("questismStats") || "null"
+    );
+
+    if (Array.isArray(saved)) {
+        characteristics.forEach((stat, index) => {
+            if (
+                Number.isInteger(saved[index]) &&
+                saved[index] >= 0 &&
+                saved[index] < ranks.length
+            ) {
+                stat.rank = saved[index];
+            }
+        });
+    }
+} catch (error) {
+    // Сайт продолжит работать без сохранения.
+}
+
+const statsContainer = document.getElementById("stats");
+const rankList = document.getElementById("rankList");
+
+function saveStats() {
+    try {
+        localStorage.setItem(
+            "questismStats",
+            JSON.stringify(
+                characteristics.map(stat => stat.rank)
+            )
+        );
+    } catch (error) {
+        // Сайт продолжит работать, даже если сохранение недоступно.
+    }
+}
+
+function renderStats() {
+    statsContainer.innerHTML = "";
+
+    characteristics.forEach((stat, index) => {
+        const row = document.createElement("div");
+        row.className = "stat";
+
+        const name = document.createElement("div");
+        name.className = "stat-name";
+        name.textContent = stat.name;
+
+        const squares = document.createElement("div");
+        squares.className = "squares";
+        squares.setAttribute("role", "group");
+        squares.setAttribute("aria-label", stat.name);
+        ranks.forEach((rank, rankIndex) => {
+            const square = document.createElement("button");
+
+            square.type = "button";
+            square.className = "square";
+            square.title = rank.name;
+            square.setAttribute(
+                "aria-label",
+                stat.name + ": ранг " + rank.name
+            );
+            square.setAttribute(
+                "aria-pressed",
+                String(stat.rank === rankIndex)
+            );
+
+            square.style.setProperty(
+                "--rank-color",
+                rank.color
+            );
+
+            square.style.background =
+                rankIndex <= stat.rank
+                    ? rank.color
+                    : rank.color + "30";
+
+            if (stat.rank === rankIndex) {
+                square.classList.add("active");
+            }
+
+            square.addEventListener("click", () => {
+                characteristics[index].rank = rankIndex;
+                saveStats();
+                renderStats();
+            });
+
+            squares.appendChild(square);
+        });
+
+        const rankLabel = document.createElement("div");
+        rankLabel.className = "rank";
+        rankLabel.textContent = ranks[stat.rank].name;
+        rankLabel.style.color = ranks[stat.rank].color;
+
+        row.append(name, squares, rankLabel);
+        statsContainer.appendChild(row);
+    });
+
+    // Среднее значение рангов — общий ранг.
+    const average = Math.floor(
+        characteristics.reduce(
+            (sum, stat) => sum + stat.rank,
+            0
+        ) / characteristics.length
+    );
+
+    const total = document.getElementById("totalRank");
+    total.textContent = "ОБЩИЙ РАНГ: " + ranks[average].name;
+    total.style.color = ranks[average].color;
+}
+
+// Отображаем все доступные ранги.
+ranks.forEach(rank => {
+    const item = document.createElement("div");
+
+    item.className = "rank-item";
+    item.textContent = rank.name;
+    item.style.color = rank.color;
+    item.style.borderColor = rank.color;
+
+    rankList.appendChild(item);
+});
+
+// Сброс характеристик.
+document.getElementById("resetBtn").addEventListener("click", () => {
+    characteristics.forEach(stat => {
+        stat.rank = 0;
+    });
+
+    saveStats();
+    renderStats();
+});
+
+renderStats();
+</script>
+
+</body>
+</html>
